@@ -1,0 +1,59 @@
+CREATE OR REPLACE TYPE INFORMACION_VISITA as object
+(
+    precio FLOAT,
+    fecha_visita DATE,
+    nombre VARCHAR(50)
+)
+
+CREATE OR REPLACE TYPE PUNTOS_INTERES as table of VARCHAR2(150);
+
+CREATE OR REPLACE TYPE VALORACIONES_VISITA as VARRAY(50)of INT;
+
+CREATE TABLE VISITAS
+(
+    id INT PRIMARY KEY,
+    guia INT,
+    informacion INFORMACION_VISITA,
+    puntosInteres PUNTOS_INTERES,
+    valoraciones VALORACIONES_VISITA
+)
+    NESTED TABLE puntosInteres STORE AS NESTED_PUNTOS_INTERES;
+    
+DECLARE
+    info INFORMACION_VISITA;
+    vals VALORACIONES_VISITA;
+BEGIN
+    info := INFORMACION_VISITA(25.99, to_date('3/11/2021', 'DD-MM-YYYY'),'Cordoba misteriosa');
+    vals := VALORACIONES_VISITA(8,9,8,7,9,7,7);
+    INSERT INTO VISITAS VALUES(2,5,info,PUNTOS_INTERES('CASA ENCANTADA','MEZQUITA','FACULTAD DE DERECHO', 'CORREDERA'), vals);
+end;
+
+SELECT * FROM VISITAS;
+
+
+CREATE OR REPLACE TYPE valoracion_metod AS OBJECT 
+(
+id_ruta INT,
+email VARCHAR2(55),
+puntuacion_guia FLOAT,
+puntuacion_visita FLOAT,
+MEMBER FUNCTION media RETURN FLOAT
+);
+
+
+CREATE OR REPLACE TYPE BODY valoracion_metod AS
+    MEMBER FUNCTION media RETURN FLOAT IS
+    BEGIN
+        RETURN (puntuacion_guia+puntuacion_visita)/2;
+    END media;
+END; 
+
+
+CREATE TABLE VALORACION of valoracion_metod;
+
+INSERT INTO VALORACION VALUES(valoracion_metod(12,'paco@uco.es',8,6));
+INSERT INTO VALORACION VALUES(valoracion_metod(8,'pepe#uco.es',9.5,10));
+INSERT INTO VALORACION VALUES(valoracion_metod(3,'jose@uco.es',4,8.5));
+
+select * from VALORACION;
+select v.media() from VALORACION v;
